@@ -15,98 +15,101 @@ class Tree
 {
 private:
     Node<T> *root;
-// Helper function to calculate the width of the subtree rooted at a given node 
-int calculate_subtree_width(Node<T> *node, int node_width = 120) 
-{ 
-    if (node == nullptr || node->get_children().empty()) 
-    { 
-        return node_width; 
-    } 
- 
-    int total_width = 0; 
-    for (auto &child : node->get_children()) 
-    { 
-        total_width += calculate_subtree_width(child, node_width); 
-    } 
-    return std::max(total_width, node_width); 
-} 
- 
-// Helper function to recursively draw the tree 
-void draw_The_Tree(sf::RenderWindow &window, Node<T> *node, int x, int y, int px, int py, int level = 0) 
-{ 
-    if (node == nullptr) 
-    { 
-        return; 
-    } 
- 
-    sf::CircleShape circle(30); 
-    circle.setFillColor(sf::Color::White); 
-    circle.setPosition(x , y ); // Adjust position to center the circle 
- 
-    window.draw(circle); 
- 
-    sf::Font font; 
-    if (!font.loadFromFile("Roboto-Italic.ttf")) 
-    { 
-        throw std::runtime_error("Could not load font"); 
-    } 
-    sf::Text text; 
-    text.setFont(font); 
- 
-    // Convert node value to string with two decimal places 
-    std::stringstream ss; 
-    ss << std::fixed << std::setprecision(2) << node->get_value(); 
-    text.setString(ss.str()); 
- 
-    text.setCharacterSize(15); 
-    text.setFillColor(sf::Color::Red); 
- 
-    // Calculate the position to center the text on the node 
-    sf::FloatRect textRect = text.getLocalBounds(); 
-    text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f); 
-    text.setPosition(x + circle.getRadius(), y + circle.getRadius()); 
- 
-    window.draw(text); 
- 
-    if (px != -1 && py != -1) // Draw line if parent coordinates are valid 
-    { 
-        sf::Vertex line[] = { 
-            sf::Vertex(sf::Vector2f(x + circle.getRadius(), y + circle.getRadius())), 
-            sf::Vertex(sf::Vector2f(px + circle.getRadius(), py + circle.getRadius())) 
-        }; 
-        window.draw(line, 2, sf::Lines); 
-    } 
- 
-    const std::vector<Node<T> *> children = node->get_children(); 
-    int childCount = children.size(); 
-    if (childCount > 0) 
-    { 
-        int subtree_width = calculate_subtree_width(node); 
-        int child_x = x - subtree_width / 2; 
- 
-        for (auto &child : children) 
-        { 
-            int child_subtree_width = calculate_subtree_width(child); 
-            int new_x = child_x + child_subtree_width / 2; 
-            int new_y = y + 150; 
-            draw_The_Tree(window, child, new_x, new_y, x, y, level + 1); 
-            child_x += child_subtree_width + 20; // Add a margin between subtrees 
-        } 
-    } 
-} 
- 
+    // Helper function to calculate the width of the subtree rooted at a given node
+    int calculate_subtree_width(Node<T> *node, int node_width = 120)
+    {
+        if (node == nullptr || node->get_children().empty())
+        {
+            return node_width;
+        }
 
+        int total_width = 0;
+        for (auto &child : node->get_children())
+        {
+            total_width += calculate_subtree_width(child, node_width);
+        }
+        return std::max(total_width, node_width);
+    }
 
+    // Helper function to recursively draw the tree
+    void draw_The_Tree(sf::RenderWindow &window, Node<T> *node, int x, int y, int px, int py, int level = 0)
+    {
+        if (node == nullptr)
+        {
+            return;
+        }
 
+        sf::CircleShape circle(30);
+        circle.setFillColor(sf::Color::White);
+        circle.setPosition(x, y); // Adjust position to center the circle
 
+        window.draw(circle);
+
+        sf::Font font;
+        if (!font.loadFromFile("Roboto-Italic.ttf"))
+        {
+            throw std::runtime_error("Could not load font");
+        }
+        sf::Text text;
+        text.setFont(font);
+
+        // Convert node value to string with two decimal places
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(2) << node->get_value();
+        text.setString(ss.str());
+
+        text.setCharacterSize(15);
+        text.setFillColor(sf::Color::Red);
+
+        // Calculate the position to center the text on the node
+        sf::FloatRect textRect = text.getLocalBounds();
+        text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
+        text.setPosition(x + circle.getRadius(), y + circle.getRadius());
+
+        window.draw(text);
+
+        if (px != -1 && py != -1) // Draw line if parent coordinates are valid
+        {
+            sf::Vertex line[] = {
+                sf::Vertex(sf::Vector2f(x + circle.getRadius(), y + circle.getRadius())),
+                sf::Vertex(sf::Vector2f(px + circle.getRadius(), py + circle.getRadius()))};
+            window.draw(line, 2, sf::Lines);
+        }
+
+        const std::vector<Node<T> *> children = node->get_children();
+        int childCount = children.size();
+        if (childCount > 0)
+        {
+            int subtree_width = calculate_subtree_width(node);
+            int child_x = x - subtree_width / 2;
+
+            for (auto &child : children)
+            {
+                int child_subtree_width = calculate_subtree_width(child);
+                int new_x = child_x + child_subtree_width / 2;
+                int new_y = y + 150;
+                draw_The_Tree(window, child, new_x, new_y, x, y, level + 1);
+                child_x += child_subtree_width + 20; // Add a margin between subtrees
+            }
+        }
+    }
 
 public:
-    Tree() : root(0) {}
+    Tree() : root(nullptr) {}
+
+     ~Tree(){}
+    // {
+    //     if (root != nullptr)
+    //     {
+    //         delete root; // Clean up existing tree
+    //     }
+    // }
 
     void add_root(Node<T> &node)
     {
         root = &node;
     }
+
     void displayTree()
     {
         sf::RenderWindow window(sf::VideoMode(1200, 800), "Tree Display");
@@ -142,13 +145,77 @@ public:
         if (parent.get_children().size() < K)
         {
             parent.add_child(&child);
-            std::cout << "number of children: " << parent.get_children().size() << "\n";
         }
         else
         {
             std::__throw_invalid_argument("The parent node has reached the maximum number of children.");
         }
     }
+
+    class MinHeapIterator
+    {
+    private:
+        struct CompareNode
+        {
+            bool operator()(const Node<T> *lhs, const Node<T> *rhs) const
+            {
+                return lhs->get_value() > rhs->get_value();
+            }
+        };
+
+        std::priority_queue<Node<T> *, std::vector<Node<T> *>, CompareNode> nodes;
+
+    public:
+        MinHeapIterator(Node<T> *root)
+        {
+            if (root)
+                nodes.push(root);
+        }
+
+        const Node<T> *operator*() const
+        {
+            if (!nodes.empty())
+            {
+                return nodes.top();
+            }
+            throw std::out_of_range("Iterator is out of range");
+        }
+        MinHeapIterator &operator++()
+        {
+            if (!nodes.empty())
+            {
+                Node<T> *current = nodes.top();
+                nodes.pop();
+                for (Node<T> *child : current->get_children()) // add the children to the priority queue
+                {
+                    nodes.push(child);
+                }
+            }
+            return *this;
+        }
+
+        bool operator!=(const MinHeapIterator &other) const
+        {
+            // Since we can't directly compare priority queues, we compare their emptiness
+            return !nodes.empty() || !other.nodes.empty();
+        }
+
+        bool operator==(const MinHeapIterator &other) const
+        {
+            return nodes.empty() && other.nodes.empty();
+        }
+    };
+
+    MinHeapIterator begin_min_heap()
+    {
+        return MinHeapIterator(root);
+    }
+
+    MinHeapIterator end_min_heap()
+    {
+        return MinHeapIterator(nullptr);
+    }
+
     class PreOrderIterator
     {
     private:
@@ -175,6 +242,7 @@ public:
 
         PreOrderIterator &operator++()
         {
+          
             if (stkTree.empty())
             {
                 return *this;
@@ -194,6 +262,7 @@ public:
 
         const Node<T> *operator*() const
         {
+          
             if (stkTree.empty())
             {
                 throw std::out_of_range("Iterator out of range");
