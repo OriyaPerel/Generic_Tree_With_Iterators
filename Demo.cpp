@@ -5,32 +5,30 @@
 #include <string>
 #include "node.hpp"
 #include "tree.hpp"
-
+#include "Complex.hpp"
 
 using namespace std;
 
 int main()
 {
     std::cout << "Hello, World!" << std::endl;
-    // Node<double> root_node(1.1);
-    // Tree<double> tree; // Binary tree that contains doubles.
-    // tree.add_root(root_node);
-    // Node<double> n1(1.2);
-    // Node<double> n2(1.3);
-    // Node<double> n3(1.4);
-    // Node<double> n4(1.5);
-    // Node<double> n5(1.6);
-    //  Node<double> n6(1.7);
-    Node<string> root_node("wow");
-    Tree<string> tree; // Binary tree that contains doubles.
+    Node<double> root_node(1.1);
+    Tree<double> tree; // Binary tree that contains doubles.
     tree.add_root(root_node);
-    Node<string> n1("hey");
-    Node<string> n2("i am");
-    Node<string> n3("a tree ");
-    Node<string> n4("with");
-    Node<string> n5("strings");
-   
-
+    Node<double> n1(1.2);
+    Node<double> n2(1.3);
+    Node<double> n3(1.4);
+    Node<double> n4(1.5);
+    Node<double> n5(1.6);
+    // Node<double> n6(1.7);
+    // Node<string> root_node("wow");
+    // Tree<string> tree; // Binary tree that contains doubles.
+    // tree.add_root(root_node);
+    // Node<string> n1("hey");
+    // Node<string> n2("i am");
+    // Node<string> n3("a tree ");
+    // Node<string> n4("with");
+    // Node<string> n5("strings");
 
     tree.add_sub_node(root_node, n1);
     tree.add_sub_node(root_node, n2);
@@ -38,7 +36,7 @@ int main()
     tree.add_sub_node(n1, n4);
     tree.add_sub_node(n2, n5);
     // tree.add_sub_node(n2,n6);
-    tree.displayTree();
+    //tree.displayTree();
 
     // The tree should look like:
     /**
@@ -48,11 +46,6 @@ int main()
      *   /  \      /
      *  1.4  1.5  1.6
      */
-
-    // std::cout<<"root: "<<root_node.get_children()[0]->get_value()<<"\n";
-    // std::cout<<"root: "<<root_node.get_children()[1]->get_value()<<"\n";
-    // std::cout<<"root: "<<n1.get_children()[0]->get_value()<<"\n";
-    // std::cout<<"root: "<<n1.get_children()[1]->get_value()<<"\n";
 
     std::cout << "the pre order is: " << std::endl;
     for (auto node = tree.begin_pre_order(); node != tree.end_pre_order(); ++node)
@@ -91,6 +84,15 @@ int main()
     {
         cout << (*node)->get_value() << " ";
     } // prints: 1.1 1.2 1.4 1.5 1.3 1.6
+
+    std::cout << '\n';
+    std::cout << "the Min heap is: " << std::endl;
+    for (auto node = tree.begin_min_heap(); node != tree.end_min_heap(); ++node)
+    {
+        cout << (*node)->get_value() << " ";
+    } // prints: 1.1 1.2 1.3 1.4 1.5 1.6
+
+    std::cout << "\n*******************otehr tree*******************" << std::endl;
     Node<double> root_node2(1.1);
     Tree<double, 3> tree2; // Binary tree that contains doubles.
     tree2.add_root(root_node2);
@@ -148,6 +150,37 @@ int main()
         cout << node->get_value() << " ";
     } // 1.1, 1.2, 1.3, 1.4, 1.5, 1.6
     cout << endl;
+
+    std::cout << "*******************Complex tree*******************" << std::endl;
+    Tree<Complex> treeC;
+    Complex root_value3(1.1, 0.0);
+    Node<Complex> root_node3(root_value3);
+    treeC.add_root(root_node3);
+
+    Node<Complex> n111(Complex(0.5, 1.2));
+    Node<Complex> n222(Complex(0.8, -1.1));
+    Node<Complex> n333(Complex(-0.2, 0.9));
+    Node<Complex> n444(Complex(1.5, -0.5));
+    Node<Complex> n555(Complex(-1.3, 0.4));
+
+    treeC.add_sub_node(root_node3, n111);
+    treeC.add_sub_node(root_node3, n222);
+    treeC.add_sub_node(n111, n333);
+    treeC.add_sub_node(n111, n444);
+    treeC.add_sub_node(n222, n555);
+
+    std::cout << "The pre-order for complex is: " << std::endl;
+    for (auto it = treeC.begin_pre_order(); it != treeC.end_pre_order(); ++it) {
+        std::cout << (*it)->get_value() << " ";
+    }
+
+   // treeC.displayTree();
+    std::cout << std::endl;
+
+    
+
+   
+
     // cout << tree; // Should print the graph using GUI.
 
     // Tree<double,3> three_ary_tree; // 3-ary tree.
