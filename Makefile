@@ -1,42 +1,38 @@
-# Variables
-CXX = g++
+# # #!make -f
+# # // id:322522806
+# # // email:oriyaperel18@gmail.com
+
+CXX=g++
 CXXFLAGS = -std=c++17 -Werror -g
 SFML_FLAGS = -lsfml-graphics -lsfml-window -lsfml-system
 VALGRIND_FLAGS = -v --leak-check=full --show-leak-kinds=all --error-exitcode=99\
 
+SOURCES=node.cpp tree.cpp Complex.cpp
+DEMO_SOURCES=Demo.cpp
+TEST_SOURCES=Test.cpp TestCounter.cpp
 
-# Source and Object files
-SOURCES = node.cpp tree.cpp Demo.cpp
-OBJECTS = $(SOURCES:.cpp=.o)
+OBJECTS=$(subst .cpp,.o,$(SOURCES))
+DEMO_OBJECTS=$(subst .cpp,.o,$(DEMO_SOURCES))
+TEST_OBJECTS=$(subst .cpp,.o,$(TEST_SOURCES))
 
-# Targets
-all: demo
-
-# Build the demo executable
-demo: Demo.o $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $^ -o demo $(SFML_FLAGS)
-
-# Pattern rule for compiling .cpp files to .o files
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Run the demo
 run: demo
-	./demo
+	./$^
 
-# Test target (commented out since it's not used in the provided Makefile)
-# test: TestCounter.o Test.o $(OBJECTS)
-# 	$(CXX) $(CXXFLAGS) $^ -o test
+demo: $(DEMO_OBJECTS) $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $^ -o demo
 
-# Tidy target
+test: $(TEST_OBJECTS) $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $^ -o test
+
 tidy:
 	clang-tidy $(SOURCES) -checks=bugprone-*,clang-analyzer-*,cppcoreguidelines-*,performance-*,portability-*,readability-*,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-owning-memory --warnings-as-errors=-* --
 
-# Valgrind target (commented out since it's not used in the provided Makefile)
-# valgrind: demo test
-# 	valgrind --tool=memcheck $(VALGRIND_FLAGS) ./demo 2>&1 | { egrep "lost| at " || true; }
-# 	valgrind --tool=memcheck $(VALGRIND_FLAGS) ./test 2>&1 | { egrep "lost| at " || true; }
+valgrind: demo test
+	valgrind --tool=memcheck $(VALGRIND_FLAGS) ./demo 2>&1 | { egrep "lost| at " || true; }
+	valgrind --tool=memcheck $(VALGRIND_FLAGS) ./test 2>&1 | { egrep "lost| at " || true; }
 
-# Clean target
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) --compile $< -o $@
+
 clean:
-	rm -f *.o demo
+	rm -f *.o demo test
