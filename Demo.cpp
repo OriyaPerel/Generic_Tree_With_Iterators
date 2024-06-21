@@ -36,7 +36,7 @@ int main()
     tree.add_sub_node(n1, n4);
     tree.add_sub_node(n2, n5);
     // tree.add_sub_node(n2,n6);
-    // tree.displayTree();
+    tree.displayTree();
 
     // The tree should look like:
     /**
@@ -197,17 +197,7 @@ int main()
     } // (1.1+0!) (0.5+1.2!) (0.8+-1.1!) (-0.2+0.9!) (1.5+-0.5!) (-1.3+0.4!)
 
     std::cout << std::endl;
-    // treeC.displayTree();
-
-    // cout << tree; // Should print the graph using GUI.
-
-    // Tree<double,3> three_ary_tree; // 3-ary tree.
-    // three_ary_tree.add_root(root_node);
-    // three_ary_tree.add_sub_node(root_node, n1);
-    // three_ary_tree.add_sub_node(root_node, n2);
-    // three_ary_tree.add_sub_node(root_node, n3);
-    // three_ary_tree.add_sub_node(n1, n4);
-    // three_ary_tree.add_sub_node(n2, n5);
+    treeC.displayTree();
 
     // The tree should look like:
     /**
