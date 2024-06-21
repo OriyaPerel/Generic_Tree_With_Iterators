@@ -1,3 +1,6 @@
+#ifndef TREE_HPP
+#define TREE_HPP
+
 #include "node.hpp"
 #include <stack>
 #include <queue>
@@ -97,7 +100,7 @@ private:
 public:
     Tree() : root(nullptr) {}
 
-     ~Tree(){}
+    ~Tree() {}
     // {
     //     if (root != nullptr)
     //     {
@@ -107,7 +110,14 @@ public:
 
     void add_root(Node<T> &node)
     {
-        root = &node;
+        if (&node == nullptr)
+        {
+            throw std::runtime_error("The root node is null");
+        }
+        else
+        {
+            root = &node;
+        }
     }
 
     void displayTree()
@@ -142,13 +152,17 @@ public:
 
     void add_sub_node(Node<T> &parent, Node<T> &child)
     {
+        if (root == nullptr || &parent == nullptr || &child == nullptr)
+        {
+            throw std::runtime_error("The root node is null or the parent or child node is null");
+        }
         if (parent.get_children().size() < K)
         {
             parent.add_child(&child);
         }
         else
         {
-            std::__throw_invalid_argument("The parent node has reached the maximum number of children.");
+            std::__throw_invalid_argument("The parent node has the maximum number of children");
         }
     }
 
@@ -159,7 +173,7 @@ public:
         {
             bool operator()(const Node<T> *lhs, const Node<T> *rhs) const
             {
-                return lhs->get_value() > rhs->get_value();
+                return lhs->get_value() > rhs->get_value(); // compare the values of the nodes
             }
         };
 
@@ -169,12 +183,12 @@ public:
         MinHeapIterator(Node<T> *root)
         {
             if (root)
-                nodes.push(root);
+                nodes.push(root); // add the root to the priority queue
         }
 
         const Node<T> *operator*() const
         {
-            if (!nodes.empty())
+            if (!nodes.empty()) // return the top element of the priority queue
             {
                 return nodes.top();
             }
@@ -194,15 +208,24 @@ public:
             return *this;
         }
 
-        bool operator!=(const MinHeapIterator &other) const
-        {
-            // Since we can't directly compare priority queues, we compare their emptiness
-            return !nodes.empty() || !other.nodes.empty();
-        }
-
         bool operator==(const MinHeapIterator &other) const
         {
-            return nodes.empty() && other.nodes.empty();
+            // Compare based on top elements of the stacks
+            if (nodeStack.empty() && other.nodeStack.empty()) // Both iterators are at the end
+            {
+                return true;
+            }
+            if (nodeStack.empty() || other.nodeStack.empty()) // One iterator is at the end, the other is not
+            {
+                return false;
+            }
+            return nodeStack.top() == other.nodeStack.top(); // Compare top elements
+        }
+
+        bool operator!=(const MinHeapIterator &other) const
+        {
+
+            return !(*this == other); // Use the equality operator
         }
     };
 
@@ -242,7 +265,7 @@ public:
 
         PreOrderIterator &operator++()
         {
-          
+
             if (stkTree.empty())
             {
                 return *this;
@@ -262,7 +285,7 @@ public:
 
         const Node<T> *operator*() const
         {
-          
+
             if (stkTree.empty())
             {
                 throw std::out_of_range("Iterator out of range");
@@ -313,7 +336,7 @@ public:
                 indexStack.push(0);
                 if (!node->get_children().empty())
                 {
-                    node = node->get_children()[0];
+                    node = node->get_children()[0]; // Assuming the first child is the "leftmost"
                 }
                 else
                 {
@@ -331,22 +354,22 @@ public:
             }
         }
 
-        bool operator!=(const PostOrderIterator &other) const
-        {
-            return !(*this == other);
-        }
-
         bool operator==(const PostOrderIterator &other) const
         {
-            if (nodeStack.empty() && other.nodeStack.empty())
+            if (nodeStack.empty() && other.nodeStack.empty()) // check if the stack is empty or not
             {
                 return true;
             }
-            if (nodeStack.empty() || other.nodeStack.empty())
+            if (nodeStack.empty() || other.nodeStack.empty()) // if one of the stacks is empty the iterator is not equal
             {
                 return false;
             }
             return nodeStack.top() == other.nodeStack.top();
+        }
+
+        bool operator!=(const PostOrderIterator &other) const
+        {
+            return !(*this == other);
         }
 
         Node<T> *operator*() const
@@ -438,18 +461,33 @@ public:
             pushLeft(root);
         }
 
-        bool operator!=(const InOrderIterator &other) const
-        {
-            return !stk.empty();
-        }
-
         bool operator==(const InOrderIterator &other) const
         {
-            return stk.empty();
+            if (stk.empty() && other.stk.empty())
+            {
+                return true;
+            }
+            else if (stk.empty() || other.stk.empty())
+            {
+                return false;
+            }
+            else
+            {
+                return stk.top() == other.stk.top();
+            }
+        }
+
+        bool operator!=(const InOrderIterator &other) const
+        {
+            return !(*this == other); // use the equality operator
         }
 
         Node<T> *operator*() const
         {
+            if (stk.empty())
+            {
+                throw std::out_of_range("Iterator out of range");
+            }
             return stk.top();
         }
 
@@ -535,6 +573,10 @@ public:
 
         Node<T> *operator*() const
         {
+            if (q.empty())
+            {
+                throw std::out_of_range("Iterator out of range");
+            }
             return currentNode;
         }
     };
@@ -604,6 +646,10 @@ public:
 
         Node<T> *operator*() const
         {
+            if (s.empty())
+            {
+                throw std::out_of_range("Iterator out of range");
+            }
             return currentNode;
         }
     };
@@ -619,3 +665,4 @@ public:
     }
 
 }; // end of Tree class
+#endif
