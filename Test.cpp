@@ -1,104 +1,401 @@
 
 #include "doctest.h"
-#include "Player.hpp"
-#include "Board.hpp"
-#include "Hexigon.hpp"
-#include "catan.hpp"
-#include "developmentCard.hpp"
+#include "tree.hpp"
+#include "node.hpp"
+#include "Complex.hpp"
+
 #include <iostream>
 #include <stdexcept>
 #include <vector>
 #include <string>
+#include <typeinfo>
 using namespace std;
 
-Player *p1 = new Player("Player 1");
-Player *p2 = new Player("Player 2");
-Player *p3 = new Player("Player 3");
-
-Catan game(p1, p2, p3);
-Board &board = game.getBoard();
-
-TEST_CASE("the player is created with the correct name")
+TEST_CASE("Add sub node functionality")
 {
-    CHECK(p1->getName() == "Player 1");
+    Tree<int> tree;
+    Tree<int> tree2;
+    Node<int> *nullNode = nullptr;
+    Node<int> validNode(1);
+    tree.add_root(validNode);
+
+    CHECK_THROWS_WITH(tree2.add_root(*nullNode), "The root node is null");
+    CHECK_THROWS_WITH(tree.add_sub_node(*nullNode, validNode), "The root node is null or the parent or child node is null");
+    CHECK_THROWS_WITH(tree.add_sub_node(validNode, *nullNode), "The root node is null or the parent or child node is null");
 }
 
-TEST_CASE("the turn is set and pass correctly")
+TEST_CASE("dont add more than 3 children to a 3-k tree")
 {
-    CHECK(p1->isHisTurn() == true);
-    CHECK(p2->isHisTurn() == false);
-    game.endTurn(p1);
-    CHECK(p1->isHisTurn() == false);
-    CHECK(p2->isHisTurn() == true);
+    Tree<int, 3> tree;
+    Node<int> root(1);
+    Node<int> n1(2);
+    Node<int> n2(3);
+    Node<int> n3(4);
+    Node<int> n4(5);
+    tree.add_root(root);
+    tree.add_sub_node(root, n1);
+    tree.add_sub_node(root, n2);
+    tree.add_sub_node(root, n3);
+    CHECK_THROWS_WITH(tree.add_sub_node(root, n4), "The parent node has the maximum number of children");
 }
 
-TEST_CASE("the player dont have enough resources or its not his turn for settlement")
+TEST_CASE("MinHeapIterator functionality")
 {
+    SUBCASE("Iterate through a tree in min-heap order")
+    {
+        // Setup a simple tree
+        Node<int> root(5);
+        Tree<int> tree3;
+        tree3.add_root(root);
+        Node<int> child1(3);
+        Node<int> child2(8);
+        root.add_child(&child1);
+        root.add_child(&child2);
 
-    vector<string> places2 = {"lumber", "ore", "lumber"};
-    vector<int> placesNum2 = {8, 3, 11};
+        // Expected order of values
+        std::vector<int> expectedOrder = {5, 3, 8};
+        std::vector<int> actualOrder;
 
-    CHECK_THROWS_MESSAGE(p1->placeSettelemnt(places2, placesNum2, board), "it is not your turn");
-    vector<string> places3 = {"sea", "sea", "grain"};
-    vector<int> placesNum3 = {3, 2, 12};
-    p2->placeSettelemnt(places3, placesNum3, board);
-    vector<string> places4 = {"grain", "grain", "lumber"};
-    vector<int> placesNum4 = {12, 9, 11};
-    p2->placeSettelemnt(places4, placesNum4, board);
-    p2->RemoveOraddResource(ResourceType::brick, -2);
-    CHECK_THROWS_MESSAGE(p2->placeSettelemnt(places2, placesNum2, board), "player can't buy a settlement");
+        for (auto it = tree3.begin_min_heap(); it != tree3.end_min_heap(); ++it)
+        {
+            if (it != tree3.end_min_heap())
+            { // Redundant in a well-behaved loop but added for clarity
+                actualOrder.push_back((*it)->get_value());
+            }
+        }
+
+        REQUIRE(actualOrder == expectedOrder);
+    }
+
+    SUBCASE("Iterator out of range throws exception")
+    {
+        Tree<int> emptyTree;
+        // Assuming emptyTree is correctly initialized to be empty
+        auto it = emptyTree.begin_min_heap();
+        CHECK_THROWS_WITH(*it, "Iterator is out of range");
+    }
+    SUBCASE("Equality and inequality operators")
+    {
+        Node<int> root(10);
+        Node<int> chid(5);
+
+        Tree<int> tree4;
+        tree4.add_root(root);
+        tree4.add_sub_node(root, chid);
+        auto it1 = tree4.begin_min_heap();
+        auto it2 = tree4.begin_min_heap();
+
+        //  CHECK(it1 == it2);
+
+        CHECK((*it1)->get_value() == (*it2)->get_value()); // Both at beginning
+
+        ++it1;
+        CHECK((*it1)->get_value() != (*it2)->get_value());
+
+        ++it2;
+        CHECK((*it1)->get_value() == (*it2)->get_value());
+    }
 }
 
-TEST_CASE("the player can place a settelemt in corrent place")
+TEST_CASE("pre order functionality")
 {
-    vector<string> places2 = {"grain", "grian", "sea"};
-    vector<int> placesNum2 = {9, 12, 3};
-    CHECK_THROWS_MESSAGE(p2->placeSettelemnt(places2, placesNum2, board), "There is already a settlement in this edge");
-    vector<string> places3 = {"sea", "grian", "sea"};
-    vector<int> placesNum3 = {4, 9, 3};
-    CHECK_THROWS_MESSAGE(p2->placeSettelemnt(places3, placesNum3, board), "There are no 2 roads between the vertex and the player's settlements");
+    SUBCASE("iterate pre order is correct")
+    {
+        // Setup a simple tree
+        Node<int> root(1);
+        Tree<int> tree;
+        tree.add_root(root);
+        Node<int> child1(2);
+        Node<int> child2(3);
+        Node<int> child3(4);
+        root.add_child(&child1);
+        root.add_child(&child2);
+        child2.add_child(&child3);
+
+        // Expected order of values
+        std::vector<int> expectedOrder = {1, 2, 3, 4};
+        std::vector<int> actualOrder;
+
+        for (auto it = tree.begin_pre_order(); it != tree.end_pre_order(); ++it)
+        {
+            if (it != tree.end_pre_order())
+            { // Redundant in a well-behaved loop but added for clarity
+                actualOrder.push_back((*it)->get_value());
+            }
+        }
+
+        REQUIRE(actualOrder == expectedOrder);
+    }
+
+    SUBCASE("Iterator out of range throws exception")
+    {
+        Tree<int> emptyTree;
+        // Assuming emptyTree is correctly initialized to be empty
+        auto it = emptyTree.begin_pre_order();
+        CHECK_THROWS_WITH(*it, "Iterator out of range");
+    }
+
+    SUBCASE("Equality and inequality operators")
+    {
+        Node<int> root(10);
+        Node<int> chid(5);
+
+        Tree<int> tree4;
+        tree4.add_root(root);
+        tree4.add_sub_node(root, chid);
+        auto it1 = tree4.begin_pre_order();
+        auto it2 = tree4.begin_pre_order();
+
+        CHECK(it1 == it2);
+
+        ++it1;
+
+        CHECK(it1 != it2);
+    }
 }
 
-TEST_CASE("the player can place a road in corrent place")
+TEST_CASE("post order functionality")
 {
-    vector<string> roads3 = {"sea", "lumber"};
-    vector<int> roadsNum3 = {4, 11};
-    CHECK_THROWS_MESSAGE(p2->placeRoad(roads3, roadsNum3, board), "There is no common edge in this places");
+    SUBCASE("iterate post order is correct")
+    {
+        // Setup a simple tree
+        Node<double> root_node(1.1);
+        Tree<double> tree; // Binary tree that contains doubles.
+        tree.add_root(root_node);
+        Node<double> n1(1.2);
+        Node<double> n2(1.3);
+        Node<double> n3(1.4);
+        tree.add_sub_node(root_node, n1);
+        tree.add_sub_node(root_node, n2);
+        tree.add_sub_node(n1, n3);
 
-    vector<string> roads4 = {"wool", "lumber"};
-    vector<int> roadsNum4 = {2, 9};
-    CHECK_THROWS_MESSAGE(p2->placeRoad(roads4, roadsNum4, board), "There is no settlement in this edge");
+        // Expected order of values
+        std::vector<double> expectedOrder = {1.4, 1.2, 1.3, 1.1};
+        std::vector<double> actualOrder;
 
-    CHECK_THROWS_MESSAGE(p2->placeRoad(roads4, roadsNum4, board), "There is already a road in this edge");
+        for (auto it = tree.begin_post_order(); it != tree.end_post_order(); ++it)
+        {
+            if (it != tree.end_post_order())
+            { // Redundant in a well-behaved loop but added for clarity
+                actualOrder.push_back((*it)->get_value());
+            }
+        }
 
-    vector<string> roads5 = {"grain", "grain"};
-    vector<int> roadsNum5 = {12, 9};
-    p2->placeRoad(roads5, roadsNum5, board);
-    vector<string> roads6 = {"grain", "sea"};
-    vector<int> roadsNum6 = {12, 2};
-    p2->placeRoad(roads6, roadsNum6, board);
-    vector<string> roads7 = {"ore", "sea"};
-    vector<int> roadsNum7 = {10, 1};
-    CHECK_THROWS_MESSAGE(p2->placeRoad(roads7, roadsNum7, board), "There is not a path to this edge");
-    game.endTurn(p2);
+        REQUIRE(actualOrder == expectedOrder);
+    }
+
+    SUBCASE("Iterator out of range throws exception")
+    {
+        Tree<int> emptyTree;
+        // Assuming emptyTree is correctly initialized to be empty
+        auto it = emptyTree.begin_post_order();
+        CHECK_THROWS_WITH(*it, "Iterator out of range");
+    }
+
+    SUBCASE("Equality and inequality operators")
+    {
+        Node<int> root(10);
+        Node<int> chid(5);
+
+        Tree<int> tree4;
+        tree4.add_root(root);
+        tree4.add_sub_node(root, chid);
+        auto it1 = tree4.begin_post_order();
+        auto it2 = tree4.begin_post_order();
+
+        CHECK(it1 == it2);
+
+        ++it1;
+
+        CHECK(it1 != it2);
+    }
+}
+TEST_CASE("in order functionality")
+{
+    SUBCASE("iterate in order is correct")
+    {
+        Node<string> root_node("wow");
+        Tree<string> tree; // Binary tree that contains strings
+        tree.add_root(root_node);
+        Node<string> n1("hey");
+        Node<string> n2("i am");
+        Node<string> n3("a tree ");
+
+        tree.add_sub_node(root_node, n1);
+        tree.add_sub_node(root_node, n2);
+        tree.add_sub_node(n1, n3);
+        // Expected order of values
+        std::vector<string> expectedOrder = {"a tree ", "hey", "wow", "i am"};
+        std::vector<string> actualOrder;
+
+        for (auto it = tree.begin_in_order(); it != tree.end_in_order(); ++it)
+        {
+            if (it != tree.end_in_order())
+            { // Redundant in a well-behaved loop but added for clarity
+                actualOrder.push_back((*it)->get_value());
+            }
+        }
+        REQUIRE(actualOrder == expectedOrder);
+    }
+
+    SUBCASE("Iterator out of range throws exception")
+    {
+        Tree<string> emptyTree;
+        // Assuming emptyTree is correctly initialized to be empty
+        auto it = emptyTree.begin_in_order();
+        CHECK_THROWS_WITH(*it, "Iterator out of range");
+    }
+
+    SUBCASE("Equality and inequality operators")
+    {
+        Node<string> root("it");
+        Node<string> chid("work!");
+
+        Tree<string> tree4;
+        tree4.add_root(root);
+        tree4.add_sub_node(root, chid);
+        auto it1 = tree4.begin_in_order();
+        auto it2 = tree4.begin_in_order();
+
+        CHECK(it1 == it2);
+
+        ++it1;
+
+        CHECK(it1 != it2);
+    }
+}
+TEST_CASE("DFS with complex numbers")
+{
+    SUBCASE("iterate DFS is correct")
+    {
+        Node<Complex> root(Complex(1, 1));
+        Tree<Complex> tree;
+        tree.add_root(root);
+        Node<Complex> n1(Complex(2, 2));
+        Node<Complex> n2(Complex(3, 3));
+        Node<Complex> n3(Complex(4, 4));
+        tree.add_sub_node(root, n1);
+        tree.add_sub_node(root, n2);
+        tree.add_sub_node(n1, n3);
+
+        // Expected order of values
+        std::vector<Complex> expectedOrder = {Complex(1, 1), Complex(2, 2), Complex(4, 4), Complex(3, 3)};
+        std::vector<Complex> actualOrder;
+
+        for (auto it = tree.begin_dfs_scan(); it != tree.end_dfs_scan(); ++it)
+        {
+            if (it != tree.end_dfs_scan())
+            { // Redundant in a well-behaved loop but added for clarity
+                actualOrder.push_back((*it)->get_value());
+            }
+        }
+
+        REQUIRE(actualOrder == expectedOrder);
+    }
+
+    SUBCASE("iterating through an empty tree")
+    {
+        Tree<Complex> emptyTree;
+        auto it = emptyTree.begin_in_order();
+        CHECK_THROWS_WITH(*it, "Iterator out of range");
+    }
+
+    SUBCASE("Equality and inequality operators")
+    {
+        Node<Complex> root(Complex(1, 1));
+        Tree<Complex> tree4;
+        tree4.add_root(root);
+        Node<Complex> n1(Complex(2, 2));
+        tree4.add_sub_node(root, n1);
+
+        auto it1 = tree4.begin_in_order();
+        auto it2 = tree4.begin_in_order();
+
+        CHECK(it1 == it2);
+
+        ++it1;
+
+        CHECK(it1 != it2);
+    }
 }
 
-TEST_CASE("chenging settlement to city")
+TEST_CASE("BFS with 3-k tree")
 {
-    vector<string> places1 = {"sea", "sea", "lumber"};
-    vector<int> placesNum1 = {5, 6, 8};
-    p3->placeSettelemnt(places1, placesNum1, board);
-    
-   // p3->printPlaces(); we can see that the settlement is in the right place
-    CHECK_THROWS_MESSAGE(p1->chengeSettlementToCity(places1, placesNum1, board), "It's not your turn");
+    SUBCASE("iterate BFS is correct")
+    {
+        Node<double> root_node2(1.1);
+        Tree<double, 3> tree2; // Binary tree that contains doubles.
+        tree2.add_root(root_node2);
+        Node<double> n22(1.2);
+        Node<double> n23(1.3);
+        Node<double> n24(1.4);
+        Node<double> n25(1.5);
+        Node<double> n26(1.6);
+        tree2.add_sub_node(root_node2, n22);
+        tree2.add_sub_node(root_node2, n23);
+        tree2.add_sub_node(root_node2, n24);
+        tree2.add_sub_node(n23, n26);
+        tree2.add_sub_node(n22, n25);
+        std::vector<double> expectedOrder = {1.1, 1.2, 1.3, 1.4, 1.5, 1.6};
+        std::vector<double> actualOrder;
+        for (auto it = tree2.begin_bfs_scan(); it != tree2.end_bfs_scan(); ++it)
+        {
+            if (it != tree2.end_bfs_scan())
+            { // Redundant in a well-behaved loop but added for clarity
+                actualOrder.push_back((*it)->get_value());
+            }
+        }
 
-    CHECK_THROWS_MESSAGE(p3->chengeSettlementToCity(places1, placesNum1, board), "player can't buy a city");
+        REQUIRE(actualOrder == expectedOrder);
+    }
 
-    // Now give p3 enough resources, but ensure they don't own the settlement
-    p3->RemoveOraddResource(ResourceType::ore, 3);
-    p3->RemoveOraddResource(ResourceType::grain, 2);
+    SUBCASE("iterating through an empty tree")
+    {
+        Tree<double, 3> emptyTree;
+        auto it = emptyTree.begin_bfs_scan();
+        CHECK_THROWS_WITH(*it, "Iterator out of range");
+    }
 
-    CHECK_THROWS_MESSAGE(p2->chengeSettlementToCity(places1, placesNum1, board), "You can't change this settlement, it's not yours");
-    p3->chengeSettlementToCity(places1, placesNum1, board);
-   // p3->printPlaces(); we can see that the settlement is now a city
+    SUBCASE("Equality and inequality operators")
+    {
+        Node<double> root(10);
+        Node<double> chid(5);
+
+        Tree<double, 3> tree4;
+        tree4.add_root(root);
+        tree4.add_sub_node(root, chid);
+        auto it1 = tree4.begin_bfs_scan();
+        auto it2 = tree4.begin_bfs_scan();
+
+        CHECK(it1 == it2);
+
+        ++it1;
+
+        CHECK(it1 != it2);
+    }
 }
+
+
+// TEST_CASE("creat the correct itertor for the type")
+// {
+//     Tree<Complex, 4> tree;
+//     Node<Complex> root(Complex(1, 1));
+//     Node<Complex> n1(Complex(2, 2));
+
+//     tree.add_root(root);
+//     tree.add_sub_node(root, n1);
+//     // auto it = tree.begin_pre_order();
+//     // CHECK(typeid(it).name() == typeid(typename Tree<std::string, 3>::PreOrderIterator).name());
+
+//     // CHECK(typeid(it) == typeid(typename Tree<std::string, 3>::PreOrderIterator));
+//     auto it = tree.begin_pre_order();
+//     auto expectedType = typeid(typename Tree<std::string, 3>::PreOrderIterator);
+//     auto actualType = typeid(it);
+
+//     std::cout << "Expected type: " << expectedType.name() << std::endl;
+//     std::cout << "Actual type: " << actualType.name() << std::endl;
+
+//     CHECK(expectedType == actualType);
+//     CHECK(tree.begin_pre_order() == tree.begin_dfs_scan());
+//     CHECK(tree.begin_pre_order() == tree.begin_post_order());
+// }
