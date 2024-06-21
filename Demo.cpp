@@ -36,7 +36,7 @@ int main()
     tree.add_sub_node(n1, n4);
     tree.add_sub_node(n2, n5);
     // tree.add_sub_node(n2,n6);
-    //tree.displayTree();
+    // tree.displayTree();
 
     // The tree should look like:
     /**
@@ -170,16 +170,34 @@ int main()
     treeC.add_sub_node(n222, n555);
 
     std::cout << "The pre-order for complex is: " << std::endl;
-    for (auto it = treeC.begin_pre_order(); it != treeC.end_pre_order(); ++it) {
+    for (auto it = treeC.begin_pre_order(); it != treeC.end_pre_order(); ++it)
+    {
         std::cout << (*it)->get_value() << " ";
-    }
+    } //(1.1+0!) (0.5+1.2!) (-0.2+0.9!) (1.5+-0.5!) (0.8+-1.1!) (-1.3+0.4!)
 
-   // treeC.displayTree();
     std::cout << std::endl;
+    std::cout << "The for each for complex is: " << std::endl;
+    for (auto node : treeC)
+    {
+        cout << node->get_value() << " ";
+    } // 1.1+0! 0.5+1.2! -0.2+0.9! 1.5+-0.5! 0.8+-1.1! -1.3+0.4!
 
-    
+    std::cout << std::endl;
+    std::cout << "The post-order for complex is: " << std::endl;
+    for (auto it = treeC.begin_post_order(); it != treeC.end_post_order(); ++it)
+    {
+        std::cout << (*it)->get_value() << " ";
+    } // (1.1+0!) (0.5+1.2!) (-0.2+0.9!) (1.5+-0.5!) (0.8+-1.1!) (-1.3+0.4!)
 
-   
+    std::cout << std::endl;
+    std::cout << "the min heap for complex is: " << std::endl;
+    for (auto it = treeC.begin_min_heap(); it != treeC.end_min_heap(); ++it)
+    {
+        std::cout << (*it)->get_value() << " ";
+    } // (1.1+0!) (0.5+1.2!) (0.8+-1.1!) (-0.2+0.9!) (1.5+-0.5!) (-1.3+0.4!)
+
+    std::cout << std::endl;
+    // treeC.displayTree();
 
     // cout << tree; // Should print the graph using GUI.
 
@@ -199,4 +217,5 @@ int main()
      *   /        |
      *  1.5      1.6
      */
+    return 0;
 }
