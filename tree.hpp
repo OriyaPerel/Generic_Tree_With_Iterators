@@ -16,8 +16,6 @@
 #include <iomanip>
 #include <cmath>
 
-
-
 template <typename T, int K = 2>
 class Tree
 {
@@ -29,15 +27,15 @@ private:
     {
         if (node == nullptr || node->get_children().empty())
         {
-            return node_width;
+            return node_width; // Return the width of the node if it has no children
         }
 
-        int total_width = 0;
+        int total_width = 0; // Initialize the total width of the subtree
         for (auto &child : node->get_children())
         {
-            total_width += calculate_subtree_width(child, node_width);
+            total_width += calculate_subtree_width(child, node_width); // Calculate the width of the subtree recursively
         }
-        return std::max(total_width, node_width);
+        return std::max(total_width, node_width); // Return the maximum width of the subtree
     }
 
     // Helper function to recursively draw the tree
@@ -64,7 +62,7 @@ private:
 
         // Convert node value to string with two decimal places
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(2) << node->get_value();
+        ss << std::fixed << std::setprecision(2) << node->get_value(); // Set the precision of the value
         text.setString(ss.str());
 
         text.setCharacterSize(15);
@@ -73,7 +71,7 @@ private:
         // Calculate the position to center the text on the node
         sf::FloatRect textRect = text.getLocalBounds();
         text.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-        text.setPosition(x + circle.getRadius(), y + circle.getRadius());
+        text.setPosition(x + circle.getRadius(), y + circle.getRadius()); // Adjust position to center the text
 
         window.draw(text);
 
@@ -120,7 +118,7 @@ public:
         }
     }
 
-     void add_sub_node(Node<T> &parent, Node<T> &child) // Add a child to a parent node
+    void add_sub_node(Node<T> &parent, Node<T> &child) // Add a child to a parent node
     {
         if (root == nullptr || &parent == nullptr || &child == nullptr)
         {
@@ -166,8 +164,6 @@ public:
         }
     }
 
-   
-
     class MinHeapIterator
     {
     private:
@@ -183,7 +179,7 @@ public:
 
         std::priority_queue<NodePtr, std::vector<NodePtr>, NodeComparer> minHeap;
 
-        void populateMinHeap(NodePtr node) // insert the nodes in the min-heap in the correct order
+        void populateMinHeap(NodePtr node) // insert the nodes in the min-heap in the correct order by the fanctor and the recursion
         {
             if (node) // check if the node is not null
             {
@@ -210,7 +206,12 @@ public:
             return minHeap.top();
         }
 
-        MinHeapIterator &operator++()
+        const T *operator->() const
+        {
+            return &(minHeap.top()->get_value()); // return the value of the top element
+        }
+
+        const MinHeapIterator &operator++()
         {
             minHeap.pop(); // remove the top element
             return *this;
@@ -223,7 +224,7 @@ public:
         bool operator==(const MinHeapIterator &other) const
         {
 
-            if (minHeap.empty() && other.minHeap.empty()) // check if the sheap is empty or not
+            if (minHeap.empty() && other.minHeap.empty()) // check if the heap is empty or not
             {
                 return true;
             }
@@ -235,12 +236,12 @@ public:
         }
     };
 
-    MinHeapIterator begin_min_heap()
+    MinHeapIterator begin_min_heap() const
     {
         return MinHeapIterator(root);
     }
 
-    MinHeapIterator end_min_heap()
+    MinHeapIterator end_min_heap() const
     {
         return MinHeapIterator(nullptr);
     }
@@ -277,7 +278,7 @@ public:
             return stkTree.top() == other.stkTree.top();
         }
 
-        PreOrderIterator &operator++()
+        const PreOrderIterator &operator++()
         {
 
             if (stkTree.empty())
@@ -288,6 +289,7 @@ public:
             Node<T> *current = stkTree.top();
             stkTree.pop(); // remove the top element
             const std::vector<Node<T> *> children = current->get_children();
+
             for (auto it = children.rbegin(); it != children.rend(); ++it)
             { // add the children in reverse order to the stack to get the
                 // correct order that it wiil be the left child first then the right child
@@ -309,9 +311,14 @@ public:
                 return stkTree.top();
             }
         }
+
+        const T *operator->() const
+        {
+            return &(stkTree.top()->get_value());
+        }
     };
 
-    auto begin_pre_order()
+    auto begin_pre_order() const
     {
         if constexpr (K != 2)
         {
@@ -323,9 +330,9 @@ public:
         }
     }
 
-    auto end_pre_order()
+    auto end_pre_order() const
     {
-        if constexpr (K != 2)
+        if constexpr (K != 2) // check the condition in compile time
         {
             return DFSIterator(nullptr);
         }
@@ -386,7 +393,7 @@ public:
             return !(*this == other);
         }
 
-        Node<T> *operator*() const
+        const Node<T> *operator*() const
         {
             if (nodeStack.empty())
             {
@@ -398,7 +405,12 @@ public:
             }
         }
 
-        PostOrderIterator &operator++()
+        const T *operator->() const
+        {
+            return &(nodeStack.top()->get_value());
+        }
+
+        const PostOrderIterator &operator++()
         {
             if (nodeStack.empty())
             {
@@ -415,7 +427,7 @@ public:
                 if (++index < nodeStack.top()->get_children().size())
                 { // we went to know if the index is less than the size
                     // of the children of the node this is to know if we have more children to visit
-                    pushLeft(nodeStack.top()->get_children()[index]);
+                    pushLeft(nodeStack.top()->get_children()[index]); // insert the children in the stack the right children
                 }
             }
 
@@ -423,7 +435,7 @@ public:
         }
     };
 
-    auto begin_post_order()
+    auto begin_post_order() const
     {
         if constexpr (K != 2)
         {
@@ -435,7 +447,7 @@ public:
         }
     }
 
-    auto end_post_order()
+    auto end_post_order() const
     {
         if constexpr (K != 2)
         {
@@ -463,7 +475,15 @@ public:
 
         bool operator==(const InOrderIterator &other) const
         {
-            return traversal == other.traversal;
+            if (traversal.empty() && other.traversal.empty()) // check if the stack is empty or not
+            {
+                return true;
+            }
+            if (traversal.empty() || other.traversal.empty()) // if one of the stacks is empty the iterator is not equal
+            {
+                return false;
+            }
+            return traversal.top() == other.traversal.top();
         }
 
         bool operator!=(const InOrderIterator &other) const
@@ -471,7 +491,7 @@ public:
             return !(*this == other);
         }
 
-        Node<T> *operator*() const
+        const Node<T> *operator*() const
         {
             if (traversal.empty())
             {
@@ -480,7 +500,12 @@ public:
             return traversal.top();
         }
 
-        InOrderIterator &operator++()
+        const T *operator->() const
+        {
+            return &(traversal.top()->get_value());
+        }
+
+        const InOrderIterator &operator++()
         {
             if (!traversal.empty())
             {
@@ -555,7 +580,7 @@ public:
             }
         }
         // Increment operator moves to the next node in BFS order
-        BFSIterator &operator++()
+        const BFSIterator &operator++()
         {
             if (!q.empty())
             {
@@ -571,6 +596,12 @@ public:
             }
             return *this;
         }
+
+        const T *operator->() const
+        {
+            return &(currentNode->get_value());
+        }
+
         bool operator!=(const BFSIterator &other) const
         {
             return this->currentNode != other.currentNode;
@@ -581,7 +612,7 @@ public:
             return this->currentNode == other.currentNode;
         }
 
-        Node<T> *operator*() const
+        const Node<T> *operator*() const
         {
             if (q.empty())
             {
@@ -591,22 +622,22 @@ public:
         }
     };
 
-    BFSIterator begin_bfs_scan()
+    BFSIterator begin_bfs_scan() const
     {
         return BFSIterator(root);
     }
 
-    BFSIterator end_bfs_scan()
+    BFSIterator end_bfs_scan() const
     {
         return BFSIterator(nullptr);
     }
 
-    BFSIterator begin()
+    BFSIterator begin() const
     {
         return begin_bfs_scan();
     }
 
-    BFSIterator end()
+    BFSIterator end() const
     {
         return end_bfs_scan();
     }
@@ -626,7 +657,7 @@ public:
             }
         }
         // Increment operator moves to the next node in DFS order
-        DFSIterator &operator++()
+        const DFSIterator &operator++()
         {
             if (!s.empty())
             {
@@ -644,6 +675,11 @@ public:
             return *this;
         }
 
+        const T *operator->() const
+        {
+            return &(currentNode->get_value());
+        }
+
         bool operator==(const DFSIterator &other) const
         {
             return this->currentNode == other.currentNode;
@@ -654,7 +690,7 @@ public:
             return this->currentNode != other.currentNode;
         }
 
-        Node<T> *operator*() const
+        const Node<T> *operator*() const
         {
             if (s.empty())
             {
@@ -664,12 +700,12 @@ public:
         }
     };
 
-    DFSIterator begin_dfs_scan()
+    DFSIterator begin_dfs_scan() const
     {
         return DFSIterator(root);
     }
 
-    DFSIterator end_dfs_scan()
+    DFSIterator end_dfs_scan() const
     {
         return DFSIterator(nullptr);
     }
