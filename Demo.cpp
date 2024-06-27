@@ -20,7 +20,7 @@ int main()
     Node<double> n3(1.4);
     Node<double> n4(1.5);
     Node<double> n5(1.6);
-    // Node<double> n6(1.7);
+    Node<double> n6(1.7);
     // Node<string> root_node("wow");
     // Tree<string> tree; // Binary tree that contains doubles.
     // tree.add_root(root_node);
@@ -35,8 +35,8 @@ int main()
     tree.add_sub_node(n1, n3);
     tree.add_sub_node(n1, n4);
     tree.add_sub_node(n2, n5);
-    // tree.add_sub_node(n2,n6);
-    tree.displayTree();
+    tree.add_sub_node(n2, n6);
+    // tree.displayTree();
 
     // The tree should look like:
     /**
@@ -106,7 +106,7 @@ int main()
     tree2.add_sub_node(root_node2, n24);
     tree2.add_sub_node(n23, n26);
     tree2.add_sub_node(n22, n25);
-    // tree2.displayTree();
+    tree2.displayTree();
 
     cout << "pre order: \n";
     for (auto node = tree2.begin_pre_order(); node != tree2.end_pre_order(); ++node)
@@ -153,15 +153,22 @@ int main()
 
     std::cout << "*******************Complex tree*******************" << std::endl;
     Tree<Complex> treeC;
-    Complex root_value3(1.1, 0.0);
+    // Complex root_value3(1.1, 0.0);
+    Complex root_value3(1, 1);
     Node<Complex> root_node3(root_value3);
     treeC.add_root(root_node3);
 
-    Node<Complex> n111(Complex(0.5, 1.2));
-    Node<Complex> n222(Complex(0.8, -1.1));
-    Node<Complex> n333(Complex(-0.2, 0.9));
-    Node<Complex> n444(Complex(1.5, -0.5));
-    Node<Complex> n555(Complex(-1.3, 0.4));
+    // Node<Complex> n111(Complex(0.5, 1.2));
+    // Node<Complex> n222(Complex(0.8, -1.1));
+    // Node<Complex> n333(Complex(-0.2, 0.9));
+    // Node<Complex> n444(Complex(1.5, -0.5));
+    // Node<Complex> n555(Complex(-1.3, 0.4));
+
+    Node<Complex> n111(Complex(2, 2));
+    Node<Complex> n222(Complex(3, 3));
+    Node<Complex> n333(Complex(4, 4));
+    Node<Complex> n444(Complex(5, 5));
+    Node<Complex> n555(Complex(6, 6));
 
     treeC.add_sub_node(root_node3, n111);
     treeC.add_sub_node(root_node3, n222);
@@ -197,7 +204,7 @@ int main()
     } // (1.1+0!) (0.5+1.2!) (0.8+-1.1!) (-0.2+0.9!) (1.5+-0.5!) (-1.3+0.4!)
 
     std::cout << std::endl;
-    treeC.displayTree();
+    //treeC.displayTree();
 
     // The tree should look like:
     /**
