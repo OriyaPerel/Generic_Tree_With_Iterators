@@ -1,4 +1,3 @@
-
 #include "doctest.h"
 #include "tree.hpp"
 #include "node.hpp"
@@ -9,7 +8,21 @@
 #include <vector>
 #include <string>
 #include <typeinfo>
+
 using namespace std;
+
+
+TEST_CASE ("creat node is correct")
+{
+    Node<int> node(1);
+    CHECK(node.get_value() == 1);
+
+    Node<string> node2("hello");
+    CHECK(node2.get_value() == "hello");
+
+    Node<Complex> node3(Complex(1, 1));
+    CHECK(node3.get_value() == Complex(1, 1));
+}
 
 TEST_CASE("Add sub node functionality")
 {
@@ -43,27 +56,23 @@ TEST_CASE("MinHeapIterator functionality")
 {
     SUBCASE("Iterate through a tree in min-heap order")
     {
-        // Setup a simple tree
         Node<int> root(5);
         Tree<int> tree3;
         tree3.add_root(root);
         Node<int> child1(3);
         Node<int> child2(8);
-        root.add_child(&child1);
-        root.add_child(&child2);
+        tree3.add_sub_node(root, child1);
+        tree3.add_sub_node(root, child2);
 
         // Expected order of values
-        std::vector<int> expectedOrder = {5, 3, 8};
+        std::vector<int> expectedOrder = {3, 5, 8};
         std::vector<int> actualOrder;
 
         for (auto it = tree3.begin_min_heap(); it != tree3.end_min_heap(); ++it)
         {
-            if (it != tree3.end_min_heap())
-            { // Redundant in a well-behaved loop but added for clarity
-                actualOrder.push_back((*it)->get_value());
-            }
+            actualOrder.push_back((*it)->get_value());
         }
-
+       
         REQUIRE(actualOrder == expectedOrder);
     }
 
@@ -84,8 +93,6 @@ TEST_CASE("MinHeapIterator functionality")
         tree4.add_sub_node(root, chid);
         auto it1 = tree4.begin_min_heap();
         auto it2 = tree4.begin_min_heap();
-
-        //  CHECK(it1 == it2);
 
         CHECK((*it1)->get_value() == (*it2)->get_value()); // Both at beginning
 
@@ -108,9 +115,10 @@ TEST_CASE("pre order functionality")
         Node<int> child1(2);
         Node<int> child2(3);
         Node<int> child3(4);
-        root.add_child(&child1);
-        root.add_child(&child2);
-        child2.add_child(&child3);
+        tree.add_sub_node(root, child1);
+        tree.add_sub_node(root, child2);
+        tree.add_sub_node(child2, child3);
+       
 
         // Expected order of values
         std::vector<int> expectedOrder = {1, 2, 3, 4};
@@ -296,7 +304,7 @@ TEST_CASE("DFS with complex numbers")
     SUBCASE("iterating through an empty tree")
     {
         Tree<Complex> emptyTree;
-        auto it = emptyTree.begin_in_order();
+        auto it = emptyTree.begin_dfs_scan();
         CHECK_THROWS_WITH(*it, "Iterator out of range");
     }
 
@@ -308,8 +316,8 @@ TEST_CASE("DFS with complex numbers")
         Node<Complex> n1(Complex(2, 2));
         tree4.add_sub_node(root, n1);
 
-        auto it1 = tree4.begin_in_order();
-        auto it2 = tree4.begin_in_order();
+        auto it1 = tree4.begin_dfs_scan();
+        auto it2 = tree4.begin_dfs_scan();
 
         CHECK(it1 == it2);
 
@@ -375,27 +383,31 @@ TEST_CASE("BFS with 3-k tree")
     }
 }
 
+TEST_CASE("min heap with complex numbers and 4-k tree")
+{
+    Tree<Complex, 4> treeC;
+    Complex root_value3(2, 2);
+    Node<Complex> root_node3(root_value3);
+    treeC.add_root(root_node3);
 
-// TEST_CASE("creat the correct itertor for the type")
-// {
-//     Tree<Complex, 4> tree;
-//     Node<Complex> root(Complex(1, 1));
-//     Node<Complex> n1(Complex(2, 2));
+    Node<Complex> n111(Complex(1, 1));
+    Node<Complex> n222(Complex(3, 3));
+    Node<Complex> n333(Complex(4, 4));
+    Node<Complex> n444(Complex(5, 5));
 
-//     tree.add_root(root);
-//     tree.add_sub_node(root, n1);
-//     // auto it = tree.begin_pre_order();
-//     // CHECK(typeid(it).name() == typeid(typename Tree<std::string, 3>::PreOrderIterator).name());
+    treeC.add_sub_node(root_node3, n111);
+    treeC.add_sub_node(root_node3, n222);
+    treeC.add_sub_node(root_node3, n333);
+    treeC.add_sub_node(root_node3, n444);
 
-//     // CHECK(typeid(it) == typeid(typename Tree<std::string, 3>::PreOrderIterator));
-//     auto it = tree.begin_pre_order();
-//     auto expectedType = typeid(typename Tree<std::string, 3>::PreOrderIterator);
-//     auto actualType = typeid(it);
+    std::vector<Complex> expectedOrder = {Complex(1, 1), Complex(2, 2), Complex(3, 3), Complex(4, 4), Complex(5, 5)};
+    std::vector<Complex> actualOrder;
 
-//     std::cout << "Expected type: " << expectedType.name() << std::endl;
-//     std::cout << "Actual type: " << actualType.name() << std::endl;
+    for (auto it = treeC.begin_min_heap(); it != treeC.end_min_heap(); ++it)
+    {
 
-//     CHECK(expectedType == actualType);
-//     CHECK(tree.begin_pre_order() == tree.begin_dfs_scan());
-//     CHECK(tree.begin_pre_order() == tree.begin_post_order());
-// }
+        actualOrder.push_back((*it)->get_value());
+    }
+    
+    REQUIRE(actualOrder == expectedOrder);
+}
